@@ -1,4 +1,3 @@
-```groovy
 // Jenkinsfile - Scripted Pipeline untuk React App
 // Submission CI/CD Pipeline dengan Jenkins
 
