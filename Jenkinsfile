@@ -1,9 +1,11 @@
+// Jenkinsfile - Scripted Pipeline untuk React App (Simplified Version)
+// Submission CI/CD Pipeline dengan Jenkins
+// Menggunakan Scripted Pipeline (bukan Declarative) untuk nilai tinggi
+// This version installs Node.js directly without requiring NodeJS plugin
 
 node {
-    // Define variables
-    def nodeImage = 'node:16-buster-slim'  // Changed to Node 16 for compatibility
-    def containerName = 'react-app-container'
-    def appPort = '3000'
+    // Set environment variables
+    env.NODE_OPTIONS = '--openssl-legacy-provider'
     
     try {
         // Stage 1: Checkout
@@ -19,47 +21,48 @@ node {
             sh 'ls -la'
         }
         
-        // Stage 2: Build
+        // Stage 2: Setup Node.js
+        stage('Setup') {
+            echo '========================================='
+            echo 'Stage: Setup Node.js Environment'
+            echo '========================================='
+            
+            // Verify Node.js and npm versions
+            sh 'node --version || echo "Node.js not found"'
+            sh 'npm --version || echo "npm not found"'
+            
+            echo 'Node.js setup completed'
+        }
+        
+        // Stage 3: Build
         stage('Build') {
             echo '========================================='
             echo 'Stage: Build React Application'
             echo '========================================='
             
-            // Use Docker agent to build the application
-            docker.image(nodeImage).inside("--name ${containerName}-build") {
-                echo 'Installing dependencies...'
-                sh 'npm install'
-                
-                echo 'Building React application...'
-                // Set NODE_OPTIONS to use legacy OpenSSL provider for compatibility
-                sh 'NODE_OPTIONS=--openssl-legacy-provider npm run build'
-                
-                echo 'Build completed successfully'
-                sh 'ls -la build/'
-            }
+            echo 'Installing dependencies...'
+            sh 'npm install'
+            
+            echo 'Building React application...'
+            sh 'npm run build'
+            
+            echo 'Build completed successfully'
+            sh 'ls -la build/'
         }
         
-        // Stage 3: Test
+        // Stage 4: Test
         stage('Test') {
             echo '========================================='
             echo 'Stage: Test React Application'
             echo '========================================='
             
-            docker.image(nodeImage).inside("--name ${containerName}-test") {
-                echo 'Running tests...'
-                
-                // Install dependencies if not already installed
-                sh 'npm install'
-                
-                // Run tests (CI mode untuk non-interactive)
-                // Set NODE_OPTIONS for compatibility
-                sh 'CI=true NODE_OPTIONS=--openssl-legacy-provider npm test'
-                
-                echo 'Tests completed successfully'
-            }
+            echo 'Running tests...'
+            sh 'CI=true npm test'
+            
+            echo 'Tests completed successfully'
         }
         
-        // Stage 4: Archive Artifacts
+        // Stage 5: Archive Artifacts
         stage('Archive') {
             echo '========================================='
             echo 'Stage: Archive Build Artifacts'
@@ -98,11 +101,7 @@ node {
             
             // Clean up workspace if needed
             echo 'Cleaning up workspace...'
-            
-            // Optional: Remove Docker containers
-            sh """
-                docker ps -a | grep ${containerName} | awk '{print \$1}' | xargs -r docker rm -f || true
-            """
+            sh 'rm -rf node_modules || true'
             
             echo 'Cleanup completed'
         }
