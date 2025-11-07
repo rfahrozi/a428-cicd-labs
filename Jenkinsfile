@@ -1,6 +1,3 @@
-// Jenkinsfile - Scripted Pipeline untuk React App
-// Submission CI/CD Pipeline dengan Jenkins
-// Menggunakan Scripted Pipeline (bukan Declarative) untuk nilai tinggi
 
 node {
     // Define variables
